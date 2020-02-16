@@ -88,30 +88,60 @@ def render_text(text):
     font = pygame.font.Font(None, 30)
     return font.render(text, 1, (100, 0, 100))
 
+clock = pygame.time.Clock()
+
+def start_find(adress):
+    pass
 
 def main():
+    text = ''
     # Инициализируем pygame
     pygame.init()
-    screen = pygame.display.set_mode((600, 450))
+    screen = pygame.display.set_mode((600, 500))
 
     # Заводим объект, в котором будем хранить все параметры отрисовки карты.
     mp = MapParams()
 
     while True:
-        event = pygame.event.wait()
-        if event.type == pygame.QUIT:  # Выход из программы
-            break
-        elif event.type == pygame.KEYUP:  # Обрабатываем различные нажатые клавиши.
-            mp.update(event)
-        else:
-            continue
+        #event1 = pygame.event.wait()
+        font = pygame.font.Font(None, 40)
+        input_box = pygame.Rect(170, 10, 140, 32)
+        color = pygame.Color('blue')
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:  # Выход из программы
+                break
+            if event.type == pygame.KEYUP:  # Обрабатываем различные нажатые клавиши.
+                mp.update(event)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    text = ''
+                elif event.key == pygame.K_BACKSPACE:
+                    text = text[:-1]
+                    start_find()
+                else:
+                    text += event.unicode
+
+        screen.fill((0, 0, 0))
+        font = pygame.font.Font(None, 30)
+        t = font.render('Введите адрес', 1, (255, 255, 100))
+        screen.blit(t, (10, 10))
+
+        # Render the current text.
+        txt_surface = font.render(text, True, color)
+        # Resize the box if the text is too long.
+        width = max(200, txt_surface.get_width() + 10)
+        input_box.w = width
+        # Blit the text.
+        screen.blit(txt_surface, (input_box.x + 5, input_box.y + 3))
+        # Blit the input_box rect.
+        pygame.draw.rect(screen, color, input_box, 2)
         # Загружаем карту, используя текущие параметры.
         map_file = load_map(mp)
         # Рисуем картинку, загружаемую из только что созданного файла.
-        screen.blit(pygame.image.load(map_file), (0, 0))
+        screen.blit(pygame.image.load(map_file), (0, 50))
         # Переключаем экран и ждем закрытия окна.
         pygame.display.flip()
-
+        clock.tick(100)
     pygame.quit()
     # Удаляем за собой файл с изображением.
     os.remove(map_file)
