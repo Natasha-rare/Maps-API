@@ -12,6 +12,7 @@ LON_STEP = 0.02
 coord_to_geo_x = 0.0000428  # Пропорции пиксельных и географических координат.
 coord_to_geo_y = 0.0000428
 move = 0.01
+map_view = ['map', 'sat', 'sat,skl']
 
 
 # Параметры отображения карты:
@@ -23,7 +24,7 @@ class MapParams(object):
         self.lat = 55.729738  # Координаты центра карты на старте.
         self.lon = 37.664777
         self.zoom = 15  # Масштаб карты на старте.
-        self.type = "map"  # Тип карты на старте.
+        self.type = map_view[0]  # Тип карты на старте.
 
     # Преобразование координат в параметр ll
     def ll(self):
@@ -39,13 +40,18 @@ class MapParams(object):
                 self.zoom -= 1
         # Двигаем карту
         elif event.key == pygame.K_UP:
-            self.lat +=  move
+            self.lat += move
         elif event.key == pygame.K_DOWN:
             self.lat -= move
         elif event.key == pygame.K_RIGHT:
             self.lon += move
         elif event.key == pygame.K_LEFT:
             self.lon -= move
+        elif event.key == pygame.K_F1:
+            if self.type == map_view[-1]:
+                self.type = map_view[0]
+            else:
+                self.type = map_view[map_view.index(self.type) + 1]
 
     # Преобразование экранных координат в географические.
     def screen_to_geo(self, pos):
