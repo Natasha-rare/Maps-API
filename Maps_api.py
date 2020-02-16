@@ -11,6 +11,7 @@ LAT_STEP = 0.008  # Шаги при движении карты по широт�
 LON_STEP = 0.02
 coord_to_geo_x = 0.0000428  # Пропорции пиксельных и географических координат.
 coord_to_geo_y = 0.0000428
+move = 0.01
 
 
 # Параметры отображения карты:
@@ -30,13 +31,21 @@ class MapParams(object):
 
     # Обновление параметров карты по нажатой клавише.
     def update(self, event):
-        if event.key == pygame.K_PAGEUP:
+        if event.key == pygame.K_PAGEUP:  # + масштаб
             if self.zoom < 17:
                 self.zoom += 1
-        elif event.key == pygame.K_PAGEDOWN:
+        elif event.key == pygame.K_PAGEDOWN:  # - масштаб
             if self.zoom > 0:
                 self.zoom -= 1
-
+        # Двигаем карту
+        elif event.key == pygame.K_UP:
+            self.lat +=  move
+        elif event.key == pygame.K_DOWN:
+            self.lat -= move
+        elif event.key == pygame.K_RIGHT:
+            self.lon += move
+        elif event.key == pygame.K_LEFT:
+            self.lon -= move
 
     # Преобразование экранных координат в географические.
     def screen_to_geo(self, pos):
