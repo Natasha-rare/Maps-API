@@ -30,10 +30,10 @@ class MapParams(object):
 
     # Обновление параметров карты по нажатой клавише.
     def update(self, event):
-        if event.key == pygame.K_UP:
+        if event.key == pygame.K_PAGEUP:
             if self.zoom < 17:
                 self.zoom += 1
-        elif event.key == pygame.K_DOWN:
+        elif event.key == pygame.K_PAGEDOWN:
             if self.zoom > 0:
                 self.zoom -= 1
 
