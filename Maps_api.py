@@ -94,7 +94,7 @@ clock = pygame.time.Clock()
 
 
 def start_find(address):
-    global mp
+    global mp, to_find
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
 
     geocoder_params = {
@@ -103,6 +103,7 @@ def start_find(address):
         "format": "json"}
 
     response = requests.get(geocoder_api_server, params=geocoder_params)
+
     if response:
         # Преобразуем ответ в json-объект
         json_response = response.json()
@@ -113,10 +114,14 @@ def start_find(address):
         # Долгота и Широта :
         mp.lon, mp.lat = [float(x) for x in toponym_coodrinates.split(" ")]
         mp.point = f'{",".join(toponym_coodrinates.split(" "))},pm2rdm'
+        to_find = toponym['metaDataProperty']['GeocoderMetaData']['text']
+
+
+to_find = ''
 
 
 def main():
-    global mp
+    global mp, to_find
     text = ''
     # Инициализируем pygame
     pygame.init()
@@ -150,12 +155,14 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if input_box2.collidepoint(event.pos):
                     mp.point = ''
+                    to_find = ''
 
         screen.fill((0, 0, 0))
         font = pygame.font.Font(None, 30)
         t = font.render('Введите метку', 1, (255, 255, 100))
         screen.blit(t, (10, 10))
-
+        t = font.render(f'Адрес: {to_find}', 1, (255, 255, 100))
+        screen.blit(t, (10, 85))
         # Render the current text.
         txt_surface = font.render(text, True, color)
         # Resize the box if the text is too long.
