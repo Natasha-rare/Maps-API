@@ -26,6 +26,7 @@ class MapParams(object):
         self.zoom = 15  # Масштаб карты на старте.
         self.type = map_view[0]  # Тип карты на старте.
         self.point = ''
+        self.top = ''
 
     # Преобразование координат в параметр ll
     def ll(self):
@@ -94,7 +95,7 @@ clock = pygame.time.Clock()
 
 
 def start_find(address):
-    global mp, to_find
+    global mp, to_find, index
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
 
     geocoder_params = {
@@ -111,23 +112,27 @@ def start_find(address):
         toponym = json_response["response"]["GeoObjectCollection"][
             "featureMember"][0]["GeoObject"]
         toponym_coodrinates = toponym["Point"]["pos"]
+        mp.top = toponym
         # Долгота и Широта :
         mp.lon, mp.lat = [float(x) for x in toponym_coodrinates.split(" ")]
         mp.point = f'{",".join(toponym_coodrinates.split(" "))},pm2rdm'
         to_find = toponym['metaDataProperty']['GeocoderMetaData']['text']
 
 
-to_find = ''
+
+
+to_find = to_find_2 = ''
 
 
 def main():
-    global mp, to_find
+    global mp, to_find, index, to_find_2
+    index = False
     text = ''
     # Инициализируем pygame
     pygame.init()
     running = True
     screen = pygame.display.set_mode((600, 600))
-
+    ind_txt = 'index OFF'
     # Заводим объект, в котором будем хранить все параметры отрисовки карты.
     mp = MapParams()
     while running:
@@ -136,6 +141,8 @@ def main():
         color = pygame.Color('blue')
 
         input_box2 = pygame.Rect(170, 50, 140, 32)
+        post_index = pygame.Rect(400, 50, 110, 32)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # Выход из программы
                 running = False
@@ -154,15 +161,28 @@ def main():
                     text += event.unicode
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if input_box2.collidepoint(event.pos):
-                    mp.point = ''
-                    to_find = ''
+                    to_find = to_find_2 = mp.point = ''
+                if post_index.collidepoint(event.pos):
+                    index = not index
+                    ind_txt = 'index ON' if index else 'index OFF'
+                    if index:
+                        to_find_2 = mp.top['metaDataProperty']['GeocoderMetaData']['Address']
+                        if 'postal_code' in to_find_2:
+                           to_find_2 = str(mp.top['metaDataProperty']['GeocoderMetaData'][
+                                               'Address']['postal_code'])
+                        else:
+                            to_find_2 = 'нет почтового индекса'
+                    else:
+                        to_find_2 = ''
 
         screen.fill((0, 0, 0))
-        font = pygame.font.Font(None, 30)
+        font = pygame.font.Font(None, 25)
         t = font.render('Введите метку', 1, (255, 255, 100))
         screen.blit(t, (10, 10))
         t = font.render(f'Адрес: {to_find}', 1, (255, 255, 100))
         screen.blit(t, (10, 85))
+        t = font.render(f'Почтовый индекс: {to_find_2}', 1, (255, 255, 100))
+        screen.blit(t, (10, 105))
         # Render the current text.
         txt_surface = font.render(text, True, color)
         # Resize the box if the text is too long.
@@ -175,6 +195,9 @@ def main():
         text2 = font.render('Сброс метки', 1, (255, 255, 100))
         screen.blit(text2, (175, 55))
         pygame.draw.rect(screen, color, input_box2, 2)
+        text2 = font.render(ind_txt, 1, (255, 255, 100))
+        screen.blit(text2, (405, 55))
+        pygame.draw.rect(screen, color, post_index, 2)
         # Загружаем карту, используя текущие параметры.
         map_file = load_map(mp)
         # Рисуем картинку, загружаемую из только что созданного файла.
