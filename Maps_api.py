@@ -25,6 +25,7 @@ class MapParams(object):
         self.lon = 37.664777
         self.zoom = 15  # Масштаб карты на старте.
         self.type = map_view[0]  # Тип карты на старте.
+        self.point = ''
 
     # Преобразование координат в параметр ll
     def ll(self):
@@ -64,7 +65,10 @@ class MapParams(object):
 
 # Создание карты с соответствующими параметрами.
 def load_map(mp):
-    map_request = "http://static-maps.yandex.ru/1.x/?ll={ll}&z={z}&l={type}".format(ll=mp.ll(), z=mp.zoom, type=mp.type)
+    if mp.point != '':
+        map_request = f"http://static-maps.yandex.ru/1.x/?ll={mp.ll()}&z={mp.zoom}&l={mp.type}&pt={mp.ll()},{mp.point}"
+    else:
+        map_request = f"http://static-maps.yandex.ru/1.x/?ll={mp.ll()}&z={mp.zoom}&l={mp.type}"
     response = requests.get(map_request)
     if not response:
         print("Ошибка выполнения запроса:")
@@ -111,6 +115,7 @@ def start_find(address):
         toponym_coodrinates = toponym["Point"]["pos"]
         # Долгота и Широта :
         mp.lon, mp.lat = [float(x) for x in toponym_coodrinates.split(" ")]
+        mp.point = 'pm2rdm'
 
 
 def main():
