@@ -65,10 +65,7 @@ class MapParams(object):
 
 # Создание карты с соответствующими параметрами.
 def load_map(mp):
-    if mp.point != '':
-        map_request = f"http://static-maps.yandex.ru/1.x/?ll={mp.ll()}&z={mp.zoom}&l={mp.type}&pt={mp.ll()},{mp.point}"
-    else:
-        map_request = f"http://static-maps.yandex.ru/1.x/?ll={mp.ll()}&z={mp.zoom}&l={mp.type}"
+    map_request = f"http://static-maps.yandex.ru/1.x/?ll={mp.ll()}&z={mp.zoom}&l={mp.type}&pt={mp.point}"
     response = requests.get(map_request)
     if not response:
         print("Ошибка выполнения запроса:")
@@ -115,7 +112,7 @@ def start_find(address):
         toponym_coodrinates = toponym["Point"]["pos"]
         # Долгота и Широта :
         mp.lon, mp.lat = [float(x) for x in toponym_coodrinates.split(" ")]
-        mp.point = 'pm2rdm'
+        mp.point = f'{",".join(toponym_coodrinates.split(" "))},pm2rdm'
 
 
 def main():
