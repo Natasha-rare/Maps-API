@@ -121,7 +121,7 @@ def main():
     # Инициализируем pygame
     pygame.init()
     running = True
-    screen = pygame.display.set_mode((600, 500))
+    screen = pygame.display.set_mode((600, 600))
 
     # Заводим объект, в котором будем хранить все параметры отрисовки карты.
     mp = MapParams()
@@ -129,6 +129,8 @@ def main():
         font = pygame.font.Font(None, 40)
         input_box = pygame.Rect(170, 10, 140, 32)
         color = pygame.Color('blue')
+
+        input_box2 = pygame.Rect(170, 50, 140, 32)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # Выход из программы
                 running = False
@@ -145,10 +147,13 @@ def main():
                                        pygame.K_UP, pygame.K_PAGEDOWN,
                                        pygame.K_PAGEUP]:
                     text += event.unicode
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if input_box2.collidepoint(event.pos):
+                    mp.point = ''
 
         screen.fill((0, 0, 0))
         font = pygame.font.Font(None, 30)
-        t = font.render('Введите адрес', 1, (255, 255, 100))
+        t = font.render('Введите метку', 1, (255, 255, 100))
         screen.blit(t, (10, 10))
 
         # Render the current text.
@@ -160,10 +165,13 @@ def main():
         screen.blit(txt_surface, (input_box.x + 5, input_box.y + 3))
         # Blit the input_box rect.
         pygame.draw.rect(screen, color, input_box, 2)
+        text2 = font.render('Сброс метки', 1, (255, 255, 100))
+        screen.blit(text2, (175, 55))
+        pygame.draw.rect(screen, color, input_box2, 2)
         # Загружаем карту, используя текущие параметры.
         map_file = load_map(mp)
         # Рисуем картинку, загружаемую из только что созданного файла.
-        screen.blit(pygame.image.load(map_file), (0, 50))
+        screen.blit(pygame.image.load(map_file), (0, 150))
         # Переключаем экран и ждем закрытия окна.
         pygame.display.flip()
         clock.tick(100)
