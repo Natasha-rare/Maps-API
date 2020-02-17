@@ -88,37 +88,60 @@ def render_text(text):
     font = pygame.font.Font(None, 30)
     return font.render(text, 1, (100, 0, 100))
 
+
 clock = pygame.time.Clock()
 
-def start_find(adress):
-    pass
+
+def start_find(address):
+    global mp
+    geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
+
+    geocoder_params = {
+        "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
+        "geocode": address,
+        "format": "json"}
+
+    response = requests.get(geocoder_api_server, params=geocoder_params)
+    if response:
+        # Преобразуем ответ в json-объект
+        json_response = response.json()
+        # Получаем первый топоним из ответа геокодера.
+        toponym = json_response["response"]["GeoObjectCollection"][
+            "featureMember"][0]["GeoObject"]
+        toponym_coodrinates = toponym["Point"]["pos"]
+        # Долгота и Широта :
+        mp.lon, mp.lat = [float(x) for x in toponym_coodrinates.split(" ")]
+
 
 def main():
+    global mp
     text = ''
     # Инициализируем pygame
     pygame.init()
+    running = True
     screen = pygame.display.set_mode((600, 500))
 
     # Заводим объект, в котором будем хранить все параметры отрисовки карты.
     mp = MapParams()
-
-    while True:
-        #event1 = pygame.event.wait()
+    while running:
         font = pygame.font.Font(None, 40)
         input_box = pygame.Rect(170, 10, 140, 32)
         color = pygame.Color('blue')
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # Выход из программы
-                break
+                running = False
             if event.type == pygame.KEYUP:  # Обрабатываем различные нажатые клавиши.
                 mp.update(event)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
+                    start_find(text)
                     text = ''
                 elif event.key == pygame.K_BACKSPACE:
                     text = text[:-1]
-                    start_find()
-                else:
+                elif event.key not in [pygame.K_LEFT,
+                                       pygame.K_RIGHT, pygame.K_DOWN,
+                                       pygame.K_UP, pygame.K_PAGEDOWN,
+                                       pygame.K_PAGEUP]:
                     text += event.unicode
 
         screen.fill((0, 0, 0))
