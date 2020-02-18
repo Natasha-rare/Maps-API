@@ -57,7 +57,7 @@ class MapParams(object):
 
     # Преобразование экранных координат в географические.
     def screen_to_geo(self, pos):
-        dy = 225 - pos[1]
+        dy = 375 - pos[1]
         dx = pos[0] - 300
         lx = self.lon + dx * coord_to_geo_x * math.pow(2, 15 - self.zoom)
         ly = self.lat + dy * coord_to_geo_y * math.cos(math.radians(self.lat)) * math.pow(2, 15 - self.zoom)
@@ -94,8 +94,8 @@ def render_text(text):
 clock = pygame.time.Clock()
 
 
-def start_find(address):
-    global mp, to_find, index
+def start_find(address, key=1):
+    global mp, to_find, index, to_find_2
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
 
     geocoder_params = {
@@ -104,7 +104,6 @@ def start_find(address):
         "format": "json"}
 
     response = requests.get(geocoder_api_server, params=geocoder_params)
-
     if response:
         # Преобразуем ответ в json-объект
         json_response = response.json()
@@ -114,11 +113,17 @@ def start_find(address):
         toponym_coodrinates = toponym["Point"]["pos"]
         mp.top = toponym
         # Долгота и Широта :
-        mp.lon, mp.lat = [float(x) for x in toponym_coodrinates.split(" ")]
+        if key == 1:
+            mp.lon, mp.lat = [float(x) for x in toponym_coodrinates.split(" ")]
         mp.point = f'{",".join(toponym_coodrinates.split(" "))},pm2rdm'
         to_find = toponym['metaDataProperty']['GeocoderMetaData']['text']
-
-
+        if index:
+            to_find_2 = mp.top['metaDataProperty']['GeocoderMetaData']['Address']
+            if 'postal_code' in to_find_2:
+                to_find_2 = str(mp.top['metaDataProperty']['GeocoderMetaData'][
+                                    'Address']['postal_code'])
+            else:
+                to_find_2 = 'нет почтового индекса'
 
 
 to_find = to_find_2 = ''
@@ -142,7 +147,7 @@ def main():
 
         input_box2 = pygame.Rect(170, 50, 140, 32)
         post_index = pygame.Rect(400, 50, 110, 32)
-
+        map = pygame.Rect(0, 150, 600, 450)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # Выход из программы
                 running = False
@@ -168,12 +173,18 @@ def main():
                     if index:
                         to_find_2 = mp.top['metaDataProperty']['GeocoderMetaData']['Address']
                         if 'postal_code' in to_find_2:
-                           to_find_2 = str(mp.top['metaDataProperty']['GeocoderMetaData'][
-                                               'Address']['postal_code'])
+                            to_find_2 = str(mp.top['metaDataProperty']['GeocoderMetaData'][
+                                                'Address']['postal_code'])
                         else:
                             to_find_2 = 'нет почтового индекса'
                     else:
                         to_find_2 = ''
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if map.collidepoint(event.pos):
+                    coordinates = mp.screen_to_geo(event.pos)
+                    coordinates = str(coordinates[0]) + ',' + str(coordinates[1])
+                    start_find(coordinates, key=2)
 
         screen.fill((0, 0, 0))
         font = pygame.font.Font(None, 25)
