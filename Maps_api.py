@@ -85,6 +85,42 @@ def load_map(mp):
     return map_file
 
 
+def find_corporation(coord):
+    global to_find
+    search_api_server = "https://search-maps.yandex.ru/v1/"
+    api_key = "dda3ddba-c9ea-4ead-9010-f43fbc15c6e3"
+
+    address_ll = coord
+
+    search_params = {
+        "apikey": api_key,
+        "lang": "ru_RU",
+        'text': 'аптека',
+        'll': address_ll,
+        'spn': '0.005,0.005',
+        "type": "biz",
+        'rspn': 1
+    }
+    response = requests.get(search_api_server, params=search_params)
+    # Преобразуем ответ в json-объект
+    json_response = response.json()
+    try:
+        # Получаем первую найденную организацию.
+        organization = json_response["features"][0]
+        # Название организации.
+        org_name = organization["properties"]["CompanyMetaData"]["name"]
+        # Адрес организации.
+        org_address = organization["properties"]["CompanyMetaData"]["address"]
+
+        # Получаем координаты ответа.
+        point = organization["geometry"]["coordinates"]
+
+        org_point = "{0},{1}".format(point[0], point[1])
+        start_find(org_point, 2)
+    except IndexError:
+        to_find = 'Организации рядом не найдено'
+
+
 # Создание холста с текстом.
 def render_text(text):
     font = pygame.font.Font(None, 30)
@@ -179,12 +215,16 @@ def main():
                             to_find_2 = 'нет почтового индекса'
                     else:
                         to_find_2 = ''
-
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if map.collidepoint(event.pos):
-                    coordinates = mp.screen_to_geo(event.pos)
-                    coordinates = str(coordinates[0]) + ',' + str(coordinates[1])
-                    start_find(coordinates, key=2)
+                if event.button == 1:
+                    if map.collidepoint(event.pos):
+                        coordinates = mp.screen_to_geo(event.pos)
+                        coordinates = str(coordinates[0]) + ',' + str(coordinates[1])
+                        start_find(coordinates, key=2)
+                if event.button == 3:
+                    if map.collidepoint(event.pos):
+                        coordinates = mp.screen_to_geo(event.pos)
+                        coordinates = str(coordinates[0]) + ',' + str(coordinates[1])
+                        find_corporation(coordinates)
 
         screen.fill((0, 0, 0))
         font = pygame.font.Font(None, 25)
